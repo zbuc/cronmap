@@ -2,7 +2,7 @@ import os.path
 
 import urwid
 
-from . import signals
+from . import signals, common
 from ..utils import debug_log
 
 

@@ -56,6 +56,10 @@ class ConsoleMap(Cronmap):
         signals.push_view_state.connect(self.sig_push_view_state)
         signals.sig_add_event.connect(self.sig_add_event)
 
+    def quit(self, a):
+        if a != "n":
+            raise urwid.ExitMainLoop
+
     def sig_add_event(self, sender, e, level):
         needed = dict(error=0, info=1, debug=2).get(level, 1)
         if self.options.verbosity < needed:

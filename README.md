@@ -5,7 +5,7 @@ A Python-based intelligence gathering tool. `cronmap` allows incident
 responders, researchers, engineers, administrators, and others to collaborate
 on investigative efforts.
 
-`cronmap` contains features for performing reconnaisance. These include
+`cronmap` contains features for performing reconnaissance. These include
 integrations for third-party tools like Skipfish and nmap, as well as
 various open source intelligence sources.
 

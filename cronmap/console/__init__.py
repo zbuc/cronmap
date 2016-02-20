@@ -6,8 +6,20 @@ import sys
 import urwid
 
 from .. import Cronmap
-from . import palettes
+from ..utils import debug_log
+from . import palettes, signals, window, statusbar, help
 from .menuview import MenuView
+
+
+def _mkhelp():
+    text = []
+    keys = [
+        ("enter/space", "activate option"),
+        ("C", "clear all options"),
+    ]
+    text.extend(common.format_keyvals(keys, key="key", val="text", indent=4))
+    return text
+help_context = _mkhelp()
 
 
 class Options(object):
@@ -37,9 +49,58 @@ class ConsoleMap(Cronmap):
         self.palette = options.palette
         self.palette_transparent = options.palette_transparent
 
+        self.view_stack = []
+
+        signals.call_in.connect(self.sig_call_in)
+        signals.pop_view_state.connect(self.sig_pop_view_state)
+        signals.push_view_state.connect(self.sig_push_view_state)
+        signals.sig_add_event.connect(self.sig_add_event)
+
+    def sig_add_event(self, sender, e, level):
+        needed = dict(error=0, info=1, debug=2).get(level, 1)
+        if self.options.verbosity < needed:
+            return
+
+        if level == "error":
+            e = urwid.Text(("error", str(e)))
+        else:
+            e = urwid.Text(str(e))
+        self.eventlist.append(e)
+        if len(self.eventlist) > EVENTLOG_SIZE:
+            self.eventlist.pop(0)
+        self.eventlist.set_focus(len(self.eventlist) - 1)
+
+    def sig_call_in(self, sender, seconds, callback, args=()):
+        def cb(*_):
+            return callback(*args)
+        self.loop.set_alarm_in(seconds, cb)
+
+    def sig_pop_view_state(self, sender):
+        if len(self.view_stack) > 1:
+            self.view_stack.pop()
+            self.loop.widget = self.view_stack[-1]
+            debug_log("self.loop.widget: " + repr(self.loop.widget))
+        else:
+            signals.status_prompt_onekey.send(
+                self,
+                prompt="Quit",
+                keys=(
+                    ("yes", "y"),
+                    ("no", "n"),
+                ),
+                callback = self.quit,
+            )
+
+    def sig_push_view_state(self, sender, window):
+        self.view_stack.append(window)
+        self.loop.widget = window
+        debug_log("self.loop.widget: " + repr(self.loop.widget))
+        debug_log("topmost: " + repr(self.loop._topmost_widget))
+        self.loop.draw_screen()
+
     def ticker(self, *userdata):
-        #changed = self.tick(self.masterq, timeout=0)
-        changed = True
+        debug_log("ticker")
+        changed = False
         if changed:
             self.loop.draw_screen()
             # signals.update_settings.send()
@@ -49,18 +110,20 @@ class ConsoleMap(Cronmap):
         pass
 
     def view_menu(self):
+        tab_offset = 0
         if self.ui.started:
             self.ui.clear()
 
-        body = MenuView()
+        body = MenuView(tab_offset)
 
+        debug_log(repr(help_context))
         signals.push_view_state.send(
             self,
             window=window.Window(
                 self,
                 body,
                 None,
-                statusbar.StatusBar(self, footer),
+                statusbar.StatusBar(self, help.footer),
                 help_context
             )
         )

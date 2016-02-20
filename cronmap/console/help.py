@@ -6,7 +6,7 @@ from . import common, signals
 from .. import version
 
 footer = [
-    ("heading", 'mitmproxy v%s ' % version.VERSION),
+    ("heading", 'cronmap v%s ' % version.VERSION),
     ('heading_key', "q"), ":back ",
 ]
 

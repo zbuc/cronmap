@@ -9,62 +9,71 @@ class MenuView(tabs.Tabs):
     def __init__(self, tab_offset):
         tabs.Tabs.__init__(self,
                            [
-                               (self.tab_request, self.view_request),
-                               (self.tab_response, self.view_response),
-                               (self.tab_details, self.view_details),
+                               (self.tab_menu, self.menu_tab),
+                               (self.tab_running_jobs, self.empty_tab),
                            ],
                            tab_offset
                            )
         self.show()
         self.last_displayed_body = None
 
-    def empty_tab(self):
+    def menu_content(self):
+        text = []
+        text.append(urwid.Text([("head", "\n\ncronmap operations:\n")]))
+        menu_options = [
+            ("1", "network recon tools"),
+            ("2", "osint recon tools"),
+            ("3", "view data"),
+            ("q", "quit"),
+        ]
+        text.extend(
+            common.format_keyvals(
+                menu_options,
+                key="key",
+                val="text",
+                indent=4))
+
+        return text
+
+    def common_header(self):
         txt = common.format_keyvals(
-            [(h + ":", v) for (h, v) in [("one", "two"), ("three", "four")]],
+            [(h + ":", v) for (h, v) in
+                [("Active Project", "#OpDP"),
+                 ("Created", "02-15-2016 00:00:00")]],
             key="header",
             val="text"
         )
-        viewmode = "test"
-        msg, body = ("test", [urwid.Text([("error", "[content missing]")])])
 
         cols = [
             urwid.Text(
                 [
-                    ("heading", msg),
+                    ("heading", ""),
                 ]
-            ),
-            urwid.Text(
-                [
-                    " ",
-                    ('heading', "["),
-                    ('heading_key', "m"),
-                    ('heading', (":%s]" % viewmode)),
-                ],
-                align="right"
             )
         ]
         title = urwid.AttrWrap(urwid.Columns(cols), "heading")
 
         txt.append(title)
-        txt.extend(body)
+
+        return txt
+
+    def empty_tab(self, body=None):
+        txt = self.common_header()
+
+        if body:
+            txt.extend(body)
 
         walker = urwid.SimpleFocusListWalker(txt)
         return urwid.ListBox(walker)
 
-    def tab_request(self):
-        return "Request"
+    def menu_tab(self):
+        body = self.menu_content()
+        txt = self.empty_tab(body)
 
-    def view_request(self):
-        return self.empty_tab()
+        return txt
 
-    def tab_response(self):
-        return "Response"
+    def tab_menu(self):
+        return "Menu"
 
-    def view_response(self):
-        return self.empty_tab()
-
-    def tab_details(self):
-        return "Detail"
-
-    def view_details(self):
-        return self.empty_tab()
+    def tab_running_jobs(self):
+        return "Running Jobs"

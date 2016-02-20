@@ -55,30 +55,6 @@ class HelpView(urwid.ListBox):
             common.format_keyvals(keys, key="key", val="text", indent=4)
         )
 
-        text.append(urwid.Text([("head", "\n\nFilter expressions:\n")]))
-        f = []
-        for i in filt.filt_unary:
-            f.append(
-                ("~%s" % i.code, i.help)
-            )
-        for i in filt.filt_rex:
-            f.append(
-                ("~%s regex" % i.code, i.help)
-            )
-        for i in filt.filt_int:
-            f.append(
-                ("~%s int" % i.code, i.help)
-            )
-        f.sort()
-        f.extend(
-            [
-                ("!", "unary not"),
-                ("&", "and"),
-                ("|", "or"),
-                ("(...)", "grouping"),
-            ]
-        )
-        text.extend(common.format_keyvals(f, key="key", val="text", indent=4))
 
         text.append(
             urwid.Text(

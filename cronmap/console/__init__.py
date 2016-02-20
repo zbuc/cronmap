@@ -192,6 +192,19 @@ class ConsoleMap(Cronmap):
         )
         self.ui.clear()
 
+    def view_help(self, helpctx):
+        signals.push_view_state.send(
+            self,
+            window=window.Window(
+                self,
+                help.HelpView(helpctx),
+                None,
+                statusbar.StatusBar(self, help.footer),
+                None
+            )
+        )
+
+
     # def view_palette_picker(self):
     #     signals.push_view_state.send(
     #         self,

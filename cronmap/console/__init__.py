@@ -6,8 +6,7 @@ import sys
 import urwid
 
 from .. import Cronmap
-from ..utils import debug_log
-from . import palettes, signals, window, statusbar, help
+from . import palettes, signals, window, statusbar, help, nettools
 from .menuview import MenuView
 
 
@@ -83,7 +82,6 @@ class ConsoleMap(Cronmap):
         if len(self.view_stack) > 1:
             self.view_stack.pop()
             self.loop.widget = self.view_stack[-1]
-            debug_log("self.loop.widget: " + repr(self.loop.widget))
         else:
             signals.status_prompt_onekey.send(
                 self,
@@ -98,12 +96,9 @@ class ConsoleMap(Cronmap):
     def sig_push_view_state(self, sender, window):
         self.view_stack.append(window)
         self.loop.widget = window
-        debug_log("self.loop.widget: " + repr(self.loop.widget))
-        debug_log("topmost: " + repr(self.loop._topmost_widget))
         self.loop.draw_screen()
 
     def ticker(self, *userdata):
-        debug_log("ticker")
         changed = False
         if changed:
             self.loop.draw_screen()
@@ -120,7 +115,6 @@ class ConsoleMap(Cronmap):
 
         body = MenuView(tab_offset)
 
-        debug_log(repr(help_context))
         signals.push_view_state.send(
             self,
             window=window.Window(
@@ -203,7 +197,6 @@ class ConsoleMap(Cronmap):
                 None
             )
         )
-
 
     # def view_palette_picker(self):
     #     signals.push_view_state.send(

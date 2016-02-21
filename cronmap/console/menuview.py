@@ -1,6 +1,6 @@
 import urwid
 
-from . import tabs, common
+from . import tabs, common, window, signals, nettools, statusbar
 
 
 class MenuView(tabs.Tabs):
@@ -10,7 +10,7 @@ class MenuView(tabs.Tabs):
         tabs.Tabs.__init__(self,
                            [
                                (self.tab_menu, self.menu_tab),
-                               (self.tab_running_jobs, self.empty_tab),
+                               (self.tab_running_jobs, window.empty_tab),
                            ],
                            tab_offset
                            )
@@ -35,45 +35,33 @@ class MenuView(tabs.Tabs):
 
         return text
 
-    def common_header(self):
-        txt = common.format_keyvals(
-            [(h + ":", v) for (h, v) in
-                [("Active Project", "#OpDP"),
-                 ("Created", "02-15-2016 00:00:00")]],
-            key="header",
-            val="text"
-        )
-
-        cols = [
-            urwid.Text(
-                [
-                    ("heading", ""),
-                ]
-            )
-        ]
-        title = urwid.AttrWrap(urwid.Columns(cols), "heading")
-
-        txt.append(title)
-
-        return txt
-
-    def empty_tab(self, body=None):
-        txt = self.common_header()
-
-        if body:
-            txt.extend(body)
-
-        walker = urwid.SimpleFocusListWalker(txt)
-        return urwid.ListBox(walker)
-
     def menu_tab(self):
         body = self.menu_content()
-        txt = self.empty_tab(body)
+        txt = window.empty_tab(body)
 
         return txt
+
+    def keypress(self, size, k):
+        k = super(self.__class__, self).keypress(size, k)
+        if k == "1":
+            self.view_network_tools()
+        else:
+            return k
 
     def tab_menu(self):
         return "Menu"
 
     def tab_running_jobs(self):
         return "Running Jobs"
+
+    def view_network_tools(self):
+        signals.push_view_state.send(
+            self,
+            window=window.Window(
+                self,
+                nettools.NetToolsView(),
+                None,
+                statusbar.StatusBar(self, nettools.footer),
+                None
+            )
+        )

@@ -2,9 +2,42 @@ import sys
 
 import urwid
 
-from . import signals
+from . import signals, common
 
 from ..utils import debug_log
+
+
+def common_header():
+    txt = common.format_keyvals(
+        [(h + ":", v) for (h, v) in
+            [("Active Project", "#OpDP"),
+             ("Created", "02-15-2016 00:00:00")]],
+        key="header",
+        val="text"
+    )
+
+    cols = [
+        urwid.Text(
+            [
+                ("heading", ""),
+            ]
+        )
+    ]
+    title = urwid.AttrWrap(urwid.Columns(cols), "heading")
+
+    txt.append(title)
+
+    return txt
+
+
+def empty_tab(body=None):
+    txt = common_header()
+
+    if body:
+        txt.extend(body)
+
+    walker = urwid.SimpleFocusListWalker(txt)
+    return urwid.ListBox(walker)
 
 
 class Window(urwid.Frame):
@@ -41,55 +74,15 @@ class Window(urwid.Frame):
             return True
 
     def keypress(self, size, k):
+        debug_log("KP")
         k = super(self.__class__, self).keypress(size, k)
         if k == "?":
             self.master.view_help(self.helpctx)
-        elif k == "c":
-            if not self.master.client_playback:
-                signals.status_prompt_path.send(
-                    self,
-                    prompt="Client replay",
-                    callback=self.master.client_playback_path
-                )
-            else:
-                signals.status_prompt_onekey.send(
-                    self,
-                    prompt="Stop current client replay?",
-                    keys=(
-                        ("yes", "y"),
-                        ("no", "n"),
-                    ),
-                    callback = self.master.stop_client_playback_prompt,
-                )
-        elif k == "i":
-            signals.status_prompt.send(
-                self,
-                prompt="Intercept filter",
-                text=self.master.state.intercept_txt,
-                callback=self.master.set_intercept
-            )
         elif k == "o":
             self.master.view_options()
         elif k == "Q":
             raise urwid.ExitMainLoop
         elif k == "q":
             signals.pop_view_state.send(self)
-        elif k == "S":
-            if not self.master.server_playback:
-                signals.status_prompt_path.send(
-                    self,
-                    prompt="Server replay path",
-                    callback=self.master.server_playback_path
-                )
-            else:
-                signals.status_prompt_onekey.send(
-                    self,
-                    prompt="Stop current server replay?",
-                    keys=(
-                        ("yes", "y"),
-                        ("no", "n"),
-                    ),
-                    callback=self.master.stop_server_playback_prompt,
-                )
         else:
             return k

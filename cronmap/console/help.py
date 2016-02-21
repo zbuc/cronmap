@@ -4,6 +4,7 @@ import urwid
 
 from . import common, signals
 from .. import version
+from ..utils import debug_log
 
 footer = [
     ("heading", 'cronmap v%s ' % version.VERSION),
@@ -12,7 +13,6 @@ footer = [
 
 
 class HelpView(urwid.ListBox):
-
     def __init__(self, help_context):
         self.help_context = help_context or []
         urwid.ListBox.__init__(
@@ -28,7 +28,7 @@ class HelpView(urwid.ListBox):
         text.append(urwid.Text([("head", "\n\nMovement:\n")]))
         keys = [
             ("j, k", "down, up"),
-            ("h, l", "left, right (in some contexts)"),
+            ("h, l/tab", "prev, next tab"),
             ("g, G", "go to beginning, end"),
             ("space", "page down"),
             ("pg up/down", "page up/down"),
@@ -55,7 +55,6 @@ class HelpView(urwid.ListBox):
             common.format_keyvals(keys, key="key", val="text", indent=4)
         )
 
-
         text.append(
             urwid.Text(
                 [
@@ -80,6 +79,7 @@ class HelpView(urwid.ListBox):
         return text
 
     def keypress(self, size, key):
+        debug_log("keypress")
         key = common.shortcuts(key)
         if key == "q":
             signals.pop_view_state.send(self)
